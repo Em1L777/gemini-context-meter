@@ -1,4 +1,10 @@
 import { defineConfig } from 'wxt';
 
-// See https://wxt.dev/api/reference/wxt/interfaces/inlineconfig.html
-export default defineConfig({});
+export default defineConfig({
+  manifest: {
+    name: 'Gemini Context Meter',
+    description: 'Локальная оценка заполненности контекстного окна в Gemini',
+    permissions: ['storage'],
+    host_permissions: ['https://gemini.google.com/*'],
+  },
+});

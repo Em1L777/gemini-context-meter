@@ -1,6 +1,6 @@
 export default defineContentScript({
-  matches: ['*://*.google.com/*'],
+  matches: ['https://gemini.google.com/*'],
   main() {
-    console.log('Hello content.');
+    console.log('[Gemini Context Meter] Content script загружен и работает!');
   },
 });
