@@ -1,13 +1,44 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Default Popup Title</title>
-    <meta name="manifest.type" content="browser_action" />
+    <title>Gemini Context Meter</title>
+    <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="./main.ts"></script>
+    <div class="popup">
+      <header class="header">
+        <h1>Gemini Context Meter</h1>
+        <p class="subtitle">Настройка лимита контекстного окна</p>
+      </header>
+
+      <div class="presets">
+        <button type="button" class="preset-btn" data-limit="32000">32k</button>
+        <button type="button" class="preset-btn" data-limit="64000">64k</button>
+        <button type="button" class="preset-btn" data-limit="128000">128k</button>
+        <button type="button" class="preset-btn" data-limit="256000">256k</button>
+        <button type="button" class="preset-btn" data-limit="1000000">1M</button>
+      </div>
+
+      <form id="limit-form" class="custom-form">
+        <label for="limit-input">Свой лимит (в токенах):</label>
+        <div class="input-row">
+          <input
+            id="limit-input"
+            type="number"
+            min="1000"
+            max="2000000"
+            step="1000"
+            required
+          />
+          <button type="submit" class="save-btn">Сохранить</button>
+        </div>
+      </form>
+
+      <div id="status-msg" class="status-msg" aria-live="polite"></div>
+    </div>
+
+    <script type="module" src="./main.js"></script>
   </body>
 </html>

@@ -1,28 +1,26 @@
 import { calculateChatMetrics } from '../src/core/metrics.js';
+import {
+  getContextLimit,
+  onContextLimitChanged,
+} from '../src/core/storage.js';
 import { createContextWidget } from '../src/ui/widget.js';
 
 export default defineContentScript({
   matches: ['https://gemini.google.com/*'],
   runAt: 'document_idle',
 
-  main(ctx) {
+  async main(ctx) {
     const widget = createContextWidget();
     widget.mount();
 
+    let currentLimit = await getContextLimit();
     let debounceTimer = null;
 
-    /**
-     * Пересчитывает метрики по текущему DOM страницы и обновляет виджет.
-     */
     function refreshMetrics() {
-      const metrics = calculateChatMetrics(document);
+      const metrics = calculateChatMetrics(document, currentLimit);
       widget.update(metrics);
     }
 
-    /**
-     * Отложенный вызов пересчёта (debounce), чтобы не грузить CPU
-     * во время быстрой потоковой генерации ответа Gemini.
-     */
     function scheduleRefresh() {
       if (debounceTimer) {
         clearTimeout(debounceTimer);
@@ -32,12 +30,16 @@ export default defineContentScript({
       }, 400);
     }
 
-    // Первый расчёт сразу после инициализации
+    // Первый расчёт с учётом сохранённого лимита
     refreshMetrics();
 
-    // Наблюдаем за изменениями DOM (новые сообщения, стриминг текста, переключение чата)
+    // Мгновенно обновляем виджет, если пользователь изменил лимит в Popup
+    const unsubscribeStorage = onContextLimitChanged((newLimit) => {
+      currentLimit = newLimit;
+      refreshMetrics();
+    });
+
     const observer = new MutationObserver((mutations) => {
-      // Игнорируем мутации внутри нашего собственного виджета, чтобы не зациклиться
       const isExternalMutation = mutations.some(
         (m) => m.target?.id !== 'gemini-context-meter-root'
       );
@@ -53,11 +55,11 @@ export default defineContentScript({
       characterData: true,
     });
 
-    // Корректная очистка ресурсов при перезагрузке или отключении расширения
     ctx.onInvalidated(() => {
       if (debounceTimer) {
         clearTimeout(debounceTimer);
       }
+      unsubscribeStorage();
       observer.disconnect();
       widget.destroy();
     });
